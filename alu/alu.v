@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: HoHai University
-// Engineer: 早安不安
+// Engineer: Junzhou Chen
 // Create Date: 2022/06/13 
 // Design Name: ALU 模块实现方法
 // Module Name: alu
@@ -14,6 +14,7 @@ module alu(
     input [3:0]Opcode,
     input  [15:0] alu_src1, 
     input  [15:0] alu_src2,
+    input  [3 :0] Opcode_src3,
     output reg [2:0] PSW,
     output reg [15:0] td
     );
@@ -52,12 +53,12 @@ always@(*)
             PSW[1] = ((~alu_src1[15])&(~num2[15])&td[15])|(alu_src1[15]&num2[15]&(~td[15])); // 是否溢出
             PSW[0] = td[15]; // 符号位
             end
-            else if(Opcode==4'b0110)begin   // 左移计算
-            td = alu_src1 >> alu_src2;
+            else if(Opcode==4'b0110)begin   // 算数左移计算
+            td = alu_src1 >>> Opcode_src3;
             PSW = 3'b000; 
             end
-            else if(Opcode==4'b0111)begin   // 右移计算
-            td = alu_src1 << alu_src2;
+            else if(Opcode==4'b0111)begin   // 算数右移计算
+            td = alu_src1 <<< Opcode_src3;
             PSW = 3'b000; 
             end
 endmodule
