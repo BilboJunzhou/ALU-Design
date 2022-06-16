@@ -1,64 +1,55 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns //仿真单位时间为 1ns，精度为 1ns
 //////////////////////////////////////////////////////////////////////////////////
 // Company: HoHai University
 // Engineer: 早安不安
 // Create Date: 2022/06/13 
-// Design Name: ALU 模块实现方法
-// Module Name: alu
-// Project Name: ALU 模块
-// Description: 实现 MIPS 指令中的 ALU 指令所对应的 ALU 计算单元。
+// Design Name: TestBench 模块实现方法
+// Module Name: testbench
+// Project Name: testbench 模块
+// Description: 将Opcode进行解码，索引对应地址
 // Revision 0.01 - File Created
 //////////////////////////////////////////////////////////////////////////////////
+module testbench;
+reg [15:0] Opcode;
+reg		[15:0]	alu_src1_ram	[15:0];	//16位宽、16深度的内存（RAM），用来存储操作数1
+reg		[15:0]	alu_src2_ram	[15:0];	//16位宽、16深度的内存（RAM），用来存储操作数2
+reg		[15:0]	td_ram			[15:0];	//16位宽、16深度的内存（RAM），用来存储运算结果
+//reg 	[15:0]	Opcode;				//指令格式:15-12是指令，11-8是结果的下标,7-4是操作数1的下标,3-0是操作数2的下标
 
-module alu(
-    input [3:0]Opcode,
-    input  [15:0] alu_src1, 
-    input  [15:0] alu_src2,
-    input  [3 :0] Opcode_src3,
-    output reg [2:0] PSW,
-    output reg [15:0] td
-    );
-    reg [15:0]num2;
-always@(*)
-        if(Opcode==4'b0000)begin    // 位与运算
-            td = alu_src1 & alu_src2;
-            if(!td) PSW = 3'b100; 
-            else PSW = 3'b000;
-            end
-            else if(Opcode==4'b0001)begin   // 位或运算
-            td = alu_src1 | alu_src2;
-            if(!td) PSW = 3'b100;
-            else PSW = 3'b000; 
-            end
-            else if(Opcode==4'b0010)begin   // 异或运算
-            td = alu_src1 ^ alu_src2;
-            if(!td) PSW = 3'b100;
-            else PSW = 3'b000;
-            end
-            else if(Opcode==4'b0011)begin   // 非运算
-            td = ~alu_src1;
-            if(!td) PSW = 3'b100;
-            else PSW = 3'b000; 
-            end
-            else if(Opcode==4'b0100)begin   // 加法计算
-            td = alu_src1 + alu_src2;  
-            PSW[2] = 1 & td; // 是否为0
-            PSW[1] = ((~alu_src1[15])&(~alu_src2[15])&td[15])|(alu_src1[15]&alu_src2[15]&(~td[15])); // 是否溢出
-            PSW[0] = td[15]; // 符号位
-            end
-            else if(Opcode==4'b0101)begin   // 减法计算
-            num2 = alu_src2[15]?{alu_src2[15],~alu_src2[14:0]+1}:alu_src2;
-            td = alu_src1 + num2;  
-            PSW[2] = 1 & td; // 是否为0
-            PSW[1] = ((~alu_src1[15])&(~num2[15])&td[15])|(alu_src1[15]&num2[15]&(~td[15])); // 是否溢出
-            PSW[0] = td[15]; // 符号位
-            end
-            else if(Opcode==4'b0110)begin   // 算数左移计算
-            td = alu_src1 >>> Opcode_src3;
-            PSW = 3'b000; 
-            end
-            else if(Opcode==4'b0111)begin   // 算数右移计算
-            td = alu_src1 <<< Opcode_src3;
-            PSW = 3'b000; 
-            end
+wire	[15:0]	td;						//单次运算的结果
+wire 	[2:0] 	PSW;
+
+wire 	[3:0]	op_index;				//运算下标
+wire 	[3:0]	alu_src1_index;			//操作数1的下标
+wire 	[3:0]	alu_src2_index;			//操作数2的下标
+wire 	[3:0]	td_index;				//结果的下标
+
+assign {op_index,alu_src1_index,alu_src2_index,td_index} = Opcode;
+
+alu alu_inst(
+	.Opcode		(op_index						), 
+	.alu_src1	(alu_src1_ram[alu_src1_index]	), 
+	.alu_src2	(alu_src2_ram[alu_src2_index]	), 
+    .Opcode_src3(alu_src2_index                 ),
+	.PSW		(PSW							),
+	.td			(td      						)
+);
+initial begin
+    Opcode = 0;
+    //对操作数2赋初值，方法为随机赋值，这一段只能想到for循环，always总报错
+	for(integer i2 = 0; i2 <16; i2 = i2 + 1) begin
+	    //对操作数1赋初值，方法为随机赋值
+		alu_src1_ram[i2] <= {$random} % 2**16; 
+	    //对操作数2赋初值，方法为随机赋值
+		alu_src2_ram[i2] <= {$random} % 2**16;   
+		//对运算结果赋初值，赋值为全0
+		td_ram[i2] <= 16'd0;
+	end
+	#100;			
+end
+
+always #10
+begin
+Opcode = $random;
+end
 endmodule
