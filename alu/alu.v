@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: HoHai University
-// Engineer: Junzhou Chen
+// Engineer: 早安不安
 // Create Date: 2022/06/13 
 // Design Name: ALU 模块实现方法
 // Module Name: alu
