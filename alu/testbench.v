@@ -10,11 +10,11 @@
 // Revision 0.01 - File Created
 //////////////////////////////////////////////////////////////////////////////////
 module testbench;
-reg [15:0] Opcode;
+reg     [15:0]  Opcode;                 //指令格式:15-12是指令，11-8是结果的下标,7-4是操作数1的下标,3-0是操作数2的下标
 reg		[15:0]	alu_src1_ram	[15:0];	//16位宽、16深度的内存（RAM），用来存储操作数1
 reg		[15:0]	alu_src2_ram	[15:0];	//16位宽、16深度的内存（RAM），用来存储操作数2
 reg		[15:0]	td_ram			[15:0];	//16位宽、16深度的内存（RAM），用来存储运算结果
-//reg 	[15:0]	Opcode;				//指令格式:15-12是指令，11-8是结果的下标,7-4是操作数1的下标,3-0是操作数2的下标
+
 
 wire	[15:0]	td;						//单次运算的结果
 wire 	[2:0] 	PSW;
@@ -24,13 +24,13 @@ wire 	[3:0]	alu_src1_index;			//操作数1的下标
 wire 	[3:0]	alu_src2_index;			//操作数2的下标
 wire 	[3:0]	td_index;				//结果的下标
 
-assign {op_index,alu_src1_index,alu_src2_index,td_index} = Opcode;
+assign {op_index,td_index,alu_src1_index,alu_src2_index} = Opcode;
 
 alu alu_inst(
 	.Opcode		(op_index						), 
 	.alu_src1	(alu_src1_ram[alu_src1_index]	), 
 	.alu_src2	(alu_src2_ram[alu_src2_index]	), 
-    .Opcode_src3(alu_src2_index                 ),
+	.Opcode_src3(alu_src2_index                	), 
 	.PSW		(PSW							),
 	.td			(td      						)
 );
@@ -51,5 +51,6 @@ end
 always #10
 begin
 Opcode = $random;
+td_ram[td_index] = td;
 end
 endmodule
